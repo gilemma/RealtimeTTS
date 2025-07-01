@@ -462,6 +462,10 @@ class StreamPlayer:
                 self.on_playback_start()
                 self.first_chunk_played = True
 
+            import time
+            while self.pause_event.is_set():
+                time.sleep(0.01)
+
             if not self.muted:
                 if self.audio_stream.mpv_process and self.audio_stream.mpv_process.stdin:
                     self.audio_stream.mpv_process.stdin.write(chunk)
@@ -469,10 +473,6 @@ class StreamPlayer:
 
             if self.on_audio_chunk:
                 self.on_audio_chunk(chunk)
-
-            import time
-            while self.pause_event.is_set():
-                time.sleep(0.01)
 
         except Exception as e:
             print(f"Error sending audio data to mpv: {e}")
@@ -508,6 +508,10 @@ class StreamPlayer:
 
         for i in range(0, len(chunk), sub_chunk_size):
             sub_chunk = chunk[i : i + sub_chunk_size]
+
+            # Pause playback if the event is set
+            while self.pause_event.is_set():
+                time.sleep(0.01)
 
             if not self.first_chunk_played and self.on_playback_start:
                 self.on_playback_start()
@@ -554,10 +558,6 @@ class StreamPlayer:
 
             if self.on_audio_chunk:
                 self.on_audio_chunk(sub_chunk)
-
-            # Pause playback if the event is set
-            while self.pause_event.is_set():
-                time.sleep(0.01)
 
             if self.immediate_stop.is_set():
                 break
